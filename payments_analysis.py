@@ -13,14 +13,6 @@ al mismo estudiante.
 Los datos que tenemos de cada estudiante son carnet y sus nombres y apellidos.
 """
 
-# # revisar parametros de consola
-# if len(sys.argv) < 4:
-#     sys.exit("usage: prueba_leer_csv.py <official_data.csv> <payments.csv> <out_filename>")
-
-# data_filename = sys.argv[1]
-# payments_filename = sys.argv[2]
-# out_filename = sys.argv[3]
-
 """
 Retorna un numero entre 0 y 1, que representa la similitud entre las
 cadenas de caracteres que se pasan como parametro.
@@ -30,6 +22,7 @@ def similar(a, b):
  
 names_to_carnets = {}
 names_to_payments = {}
+names_not_found = []
 
 
 def analyze(names_filename, payments_filename, out_filename):
@@ -57,13 +50,26 @@ def analyze(names_filename, payments_filename, out_filename):
     # coincide en un 75% (por los errores humanos generados por el banco), entonces
     # se le agrega el cobro al estudiante.
     for k0, v0 in names_to_payments.items():
+        found = False
         for k1, v1 in names_to_carnets.items():
             s = similar(k0, k1)
             if s >= 0.75:
                 names_to_carnets[k1]['list'] = names_to_payments[k0]
-            # elif s < 0.05:
-            #     print(k0, ' is not similar to: ', k1)
+                found = True
+        # revisar si el nombre no esta en la base de datos oficial
+        if not found:
+            if len(names_not_found) == 0:
+                names_not_found.append(k0)
+            else:
+                found = False
+                for n in names_not_found:
+                    if similar(n, k0) >= 0.75:
+                        found = True
+                        break
+                if not found:
+                    names_not_found.append(k0)
 
+    # escribir archivo generado
     with open(out_filename, 'w') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=['Carnet', 'Nombre', 'Cobro 1', 'Cobro 2', 'Cobro 3', 'Cobro 4', 'Cobro 5'])
         writer.writeheader()
@@ -71,5 +77,21 @@ def analyze(names_filename, payments_filename, out_filename):
             d = {'Carnet':names_to_carnets[k0]['carnet'], 'Nombre':k0}
             for i in range(len(names_to_carnets[k0]['list'])):
                 d['Cobro ' + str(i + 1)] = names_to_carnets[k0]['list'][i]
-            
             writer.writerow(d)
+    
+    # escribir nombres no encontrados
+    with open(out_filename.split('.')[0] + '_no_encontrados.csv', 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['Nombre'])
+        for n in names_not_found:
+            writer.writerow([n])
+
+# revisar parametros de consola
+if len(sys.argv) < 4:
+    sys.exit("usage: prueba_leer_csv.py <official_data.csv> <payments.csv> <out_filename>")
+
+data_filename = sys.argv[1]
+payments_filename = sys.argv[2]
+out_filename = sys.argv[3]
+
+analyze(data_filename, payments_filename, out_filename)
