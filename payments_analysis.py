@@ -87,11 +87,11 @@ def analyze(names_filename, payments_filename, out_filename):
             writer.writerow([n])
 
 # revisar parametros de consola
-if len(sys.argv) < 4:
-    sys.exit("usage: prueba_leer_csv.py <official_data.csv> <payments.csv> <out_filename>")
+# if len(sys.argv) < 4:
+#     sys.exit("usage: prueba_leer_csv.py <official_data.csv> <payments.csv> <out_filename>")
 
-data_filename = sys.argv[1]
-payments_filename = sys.argv[2]
-out_filename = sys.argv[3]
+# data_filename = sys.argv[1]
+# payments_filename = sys.argv[2]
+# out_filename = sys.argv[3]
 
-analyze(data_filename, payments_filename, out_filename)
+# analyze(data_filename, payments_filename, out_filename)
